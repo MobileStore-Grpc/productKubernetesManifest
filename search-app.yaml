@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: app-staging
+  labels:
+    app: product
+    env: app-staging
+    access: public
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: prd-pod-port
+  selector:
+    app: product
+    env: app-staging
+    access: public
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-deployment
+  namespace: app-staging
+  labels:
+    app: product
+    env: app-staging
+    access: public
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product
+      env: app-staging
+      access: public
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: product
+        env: app-staging
+        access: public
+        version: v1
+    spec:
+      containers:
+        - name: search
+          image: 890358416518.dkr.ecr.us-east-1.amazonaws.com/eks-deployment-demo:TAG
+          command:
+            - "--port"
+            - "8080"
+          ports:
+            - name: prd-pod-port
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "0Mi"
+            limits:
+              cpu: "600m"
+              memory: "1536Mi"
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: "regcred"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "node_group"
+                    operator: In
+                    values:
+                      - APP-GROUP

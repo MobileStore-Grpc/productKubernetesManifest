@@ -1,0 +1,46 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: product-app-vs
+  namespace: app-staging
+spec:
+  hosts:
+    - api-prouduct.docasap.com
+    - product-service
+  gateways:
+    - istio-system/ext-gateway
+    - mesh
+  http:
+    - match:
+        - uri:
+            prefix: "/"
+      route:
+        - destination:
+            host: product-service.app-staging.svc.cluster.local
+            port:
+              number: 8080
+      corsPolicy:
+        allowOrigins:
+          - regex: https?:\/\/(.*[.])?docasap[.]com
+          - regex: https?:\/\/(.*[.])?dainternal[.]com
+          - regex: https?:\/\/(.*[.])?docasap[.]com:[0-9][0-9][0-9][0-9]
+          - regex: http:\/\/192.168.*.*:*
+          - regex: http:\/\/172.19.*.*:*
+          - regex: https?:\/\/(.*[.])?localhost:[0-9][0-9][0-9][0-9]
+          - exact: https?://localhost:8888
+          - exact: https?://staging.dainternal.com
+          - exact: https?://localhost:8000
+          - regex: https?:\/\/(.*[.])?daproduction[.]ml
+          - regex: https?:\/\/(.*[.])?dainternal[.]com
+        allowMethods:
+          - GET
+          - PUT
+          - POST
+          - DELETE
+          - OPTIONS
+        allowHeaders:
+          - X-Requested-With
+          - content-type
+          - origin
+        maxAge: "24h"

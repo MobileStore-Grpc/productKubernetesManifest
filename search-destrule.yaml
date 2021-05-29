@@ -1,0 +1,12 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: product-app-dr
+  namespace: app-staging
+spec:
+  host: product-service
+  subsets:
+    - name: version-v1
+      labels:
+        app: product
+        version: v1
